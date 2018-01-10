@@ -25,6 +25,7 @@ of the German Bundestag (`<https://www.bundestag.de/blob/472878/c1a07a64c9ea8c68
 import re
 import sys
 import logging
+import datetime
 import multiprocessing
 
 # third party imports
@@ -33,21 +34,21 @@ import bs4
 # library specific imports
 
 
-def _format_date(date):
-    """Format date (ISO 8601).
+def _get_datetime(date):
+    """Get datetime object.
 
-    :param SRE_pattern date: date
+    :param str date: date (DD.MM.YYYY)
 
-    :returns: date (YY-MM-DD)
-    :rtype: str
+    :returns: date
+    :rtype: datetime
     """
     try:
-        date_iso = "{}-{}-{}".format(
-            date.group("YY"), date.group("MM"), date.group("DD")
-        )
+        args = [int(word) for word in date.split(".") if word][::-1]
+        if len(args):
+            date = datetime.datetime(*args)
     except Exception:
         raise
-    return date_iso
+    return date
 
 
 class MBTXML(object):
@@ -172,9 +173,13 @@ class MBTXML(object):
                 "akad_titel":
                 self._find_element("akad_titel", root=root).get_text(),
                 "historie_von":
-                self._find_element("historie_von", root=root).get_text(),
+                _get_datetime(
+                    self._find_element("historie_von", root=root).get_text()
+                ),
                 "historie_bis":
-                self._find_element("historie_bis", root=root).get_text()
+                _get_datetime(
+                    self._find_element("historie_bis", root=root).get_text()
+                )
             }
         except Exception:
             raise
@@ -219,15 +224,21 @@ class MBTXML(object):
             if element:
                 biografische_angaben = {
                     "geburtsdatum":
-                    self._find_element(
-                        "geburtsdatum", root=element
-                    ).get_text(),
+                    _get_datetime(
+                        self._find_element(
+                            "geburtsdatum", root=element
+                        ).get_text()
+                    ),
                     "geburtsort":
                     self._find_element("geburtsort", root=element).get_text(),
                     "geburtsland":
                     self._find_element("geburtsland", root=element).get_text(),
                     "sterbedatum":
-                    self._find_element("sterbedatum", root=element).get_text(),
+                    _get_datetime(
+                        self._find_element(
+                            "sterbedatum", root=element
+                        ).get_text()
+                    ),
                     "geschlecht":
                     self._find_element("geschlecht", root=element).get_text(),
                     "familienstand":
@@ -268,15 +279,23 @@ class MBTXML(object):
                 "ins_lang":
                 self._find_element("ins_lang", root=root).get_text(),
                 "mdbins_von":
-                self._find_element("mdbins_von", root=root).get_text(),
+                _get_datetime(
+                    self._find_element("mdbins_von", root=root).get_text()
+                ),
                 "mdbins_bis":
-                self._find_element("mdbins_bis", root=root).get_text(),
+                _get_datetime(
+                    self._find_element("mdbins_bis", root=root).get_text()
+                ),
                 "fkt_lang":
                 self._find_element("fkt_lang", root=root).get_text(),
                 "fktins_von":
-                self._find_element("fktins_von", root=root).get_text(),
+                _get_datetime(
+                    self._find_element("fktins_von", root=root).get_text()
+                ),
                 "fktins_bis":
-                self._find_element("fktins_bis", root=root).get_text(),
+                _get_datetime(
+                    self._find_element("fktins_bis", root=root).get_text()
+                )
             }
         except Exception:
             raise
@@ -319,9 +338,13 @@ class MBTXML(object):
             wahlperiode = {
                 "wp": self._find_element("wp", root=root).get_text(),
                 "mdbwp_von":
-                self._find_element("mdbwp_von", root=root).get_text(),
+                _get_datetime(
+                    self._find_element("mdbwp_von", root=root).get_text()
+                ),
                 "mdbwp_bis":
-                self._find_element("mdbwp_bis", root=root).get_text(),
+                _get_datetime(
+                    self._find_element("mdbwp_bis", root=root).get_text()
+                ),
                 "wkr_nummer":
                 self._find_element("wkr_nummer", root=root).get_text(),
                 "wkr_name":
