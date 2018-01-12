@@ -244,11 +244,13 @@ class MBTXML(object):
                     "familienstand":
                     self._find_element(
                         "familienstand", root=element
-                    ).get_text(),
+                    ).get_text().split(","),
                     "religion":
                     self._find_element("religion", root=element).get_text(),
                     "beruf":
-                    self._find_element("beruf", root=element).get_text(),
+                    self._find_element(
+                        "beruf", root=element
+                    ).get_text().split(","),
                     "partei_kurz":
                     self._find_element("partei_kurz", root=element).get_text(),
                     "vita_kurz":
