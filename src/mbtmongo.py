@@ -158,3 +158,5 @@ class MBTMongo(object):
             "worker %d closed connection to mongoDB %s (%s:%d)",
             self.pid, self.db, self.host, self.port
         )
+        self.client.close()
+        return
