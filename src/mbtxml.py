@@ -62,22 +62,19 @@ class MBTXML(object):
         """Initialize meinBT XML file parser.
 
         :param int pid: process ID
-        :param str xml: XML file name
+        :param ZipExtFile xml: XML file
         """
         logger = multiprocessing.get_logger().getChild(__name__)
         logger.setLevel(logging.INFO)
         logger.addHandler(logging.StreamHandler(stream=sys.stdout))
         self.pid = pid
-        logger.info("worker %d parses XML file %s", self.pid, xml)
+        logger.info("worker %d parses XML file %s", self.pid, xml.name)
         try:
-            file_ = open(xml)
-            self.soup = bs4.BeautifulSoup(file_, "lxml")
+            self.soup = bs4.BeautifulSoup(xml, "lxml")
         except OSError:
             logger.exception(
-                "worker %d failed to parse XML file", self.pid, xml
+                "worker %d failed to parse XML file", self.pid, xml.name
             )
-        finally:
-            file_.close()
         return
 
     def _find_element(self, name, root=None):
