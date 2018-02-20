@@ -17,12 +17,12 @@
 
 """
 :synopsis: XML file parser for the biographical data of the Members
-of the German Bundestag (`<https://www.bundestag.de/blob/472878/c1a07a64c9ea8c687df6634f2d9d805b/mdb-stammdaten-data.zip>`_).
+of the German Bundestag and printed matters
+(`<https://www.bundestag.de/service/opendata>`_).
 """
 
 
 # standard library imports
-import re
 import sys
 import logging
 import datetime
@@ -57,10 +57,6 @@ class MBTXML(object):
     :ivar int pid: process ID
     :ivar BeautifulSoup soup: XML file tree
     """
-
-    DATE = re.compile(
-        r"(?P<DD>[0-9]{2})\.(?P<MM>[0-9]{2})\.(?P<YY>[0-9]{4})"
-    )
 
     def __init__(self, pid, xml):
         """Initialize meinBT XML file parser.
@@ -97,7 +93,7 @@ class MBTXML(object):
             if root:
                 element = root.find(name=name)
             else:
-                self.soup.find(name=name)
+                element = self.soup.find(name=name)
         except Exception:
             raise
         return element
@@ -119,6 +115,11 @@ class MBTXML(object):
         except Exception:
             raise
         return elements
+
+
+class MBTStammdaten(MBTXML):
+    """Biographical data of the Members of the German Bundestag
+    XML file parser."""
 
     def find_version(self):
         """Find version.
@@ -413,3 +414,110 @@ class MBTXML(object):
                 yield mdb
         except Exception:
             raise
+
+
+class MBTDrucksachen(MBTXML):
+    """Printed matters XML parser."""
+
+    def _find_drs_typ(self, root=None):
+        """Find drs_typ.
+
+        :param Tag root: root
+
+        :returns: drs_typ
+        :rtype: str
+        """
+        # total number: 0-1
+        try:
+            element = self._find_element("drs_typ", root=root)
+            if element:
+                drs_typ = element.get_text()
+            else:
+                drs_typ = ""
+        except Exception:
+            raise
+        return drs_typ
+
+    def _find_titel(self, root=None):
+        """Find titel.
+
+        :param Tag root: root
+
+        :returns: titel
+        :rtype: str
+        """
+        # total number: 0-1
+        try:
+            element = self._find_element("titel", root=root)
+            if element:
+                titel = element.get_text()
+            else:
+                titel = ""
+        except Exception:
+            raise
+        return titel
+
+    def _find_k_urheber(self, root=None):
+        """Find k_urheber.
+
+        :param Tag root: root
+
+        :returns: k_urheber
+        :rtype: list
+        """
+        # total number: 0-n
+        try:
+            k_urheber = []
+            elements = self._find_all_elements("k_urheber", root=root)
+            for element in elements:
+                k_urheber.append(element.get_text())
+        except Exception:
+            raise
+        return k_urheber
+
+    def _find_p_urheber(self, root=None):
+        """Find p_urheber.
+
+        :param Tag root: root
+
+        :returns: p_urheber
+        :rtype: list
+        """
+        # total number: 0-n
+        try:
+            p_urheber = []
+            elements = self._find_all_elements("p_urheber", root=root)
+            for element in elements:
+                p_urheber.append(element.get_text())
+        except Exception:
+            raise
+        return p_urheber
+
+    def find_dokument(self):
+        """Find dokument.
+
+        :returns: dokument
+        :rtype: dict
+        """
+        # total number: 1
+        try:
+            element = self._find_element("dokument")
+            dokument = {
+                "wahlperiode":
+                self._find_element("wahlperiode", root=element).get_text(),
+                "dokumentart":
+                self._find_element("dokumentart", root=element).get_text(),
+                "drs_typ": self._find_drs_typ(root=element),
+                "nr": self._find_element("nr", root=element).get_text(),
+                "datum":
+                _get_datetime(
+                    self._find_element("datum", root=element).get_text()
+                ),
+                "titel": self._find_titel(root=element),
+                "k_urheber": self._find_k_urheber(root=element),
+                "p_urheber": self._find_p_urheber(root=element),
+                "text": self._find_element("text", root=element).get_text()
+            }
+        except Exception:
+            raise
+        return dokument
