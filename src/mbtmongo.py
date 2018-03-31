@@ -95,7 +95,7 @@ class MBTMongo(object):
         """
         try:
             logger = _get_logger(__name__)
-            inserted_id = self.client[self.db][collection].insert(record)
+            inserted_id = self.client[self.db][collection].insert_one(record)
         except pymongo.errors.PyMongoError:
             logger.exception("worker %d failed to insert document", self.pid)
             raise
